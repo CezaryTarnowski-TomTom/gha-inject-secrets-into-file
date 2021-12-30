@@ -10,7 +10,7 @@ jobs:
         uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file@main
         with:
           output: .env.test
-          secrets: toJson(${{ secrets }})
+          secrets: ${{ toJson(secrets) }}
       - name: Check outputs
         run: |
           grep -q "very secret" .env.test
