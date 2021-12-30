@@ -1,13 +1,18 @@
-name: "Go Container Action Template"
-description: "Get started with Go Container actions"
-author: "Jacob Tomlinson"
+name: "inject secrets into file"
+description: "allows to replace placeholders in files with secrets"
+author: "Cezary Tarnowski"
 inputs:
-  myInput:
-    description: "Input to use"
-    default: "world"
-outputs:
-  myOutput:
-    description: "Output from the action"
+  file:
+    description: "name of the file to use as an input"
+    required: false
+    default: ".env"
+  output:
+    description: "name of the file to use as an output"
+    required: false
+    default: "the same as input file"
+  secrets:
+    description: "secrets to be used to replace placeholders in the env file"
+    required: true
 runs:
   using: "docker"
   image: "Dockerfile"

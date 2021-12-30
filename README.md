@@ -1,18 +1,15 @@
-# Go Container Action Template
+# GitHub Action - Inject secrets into file
 
 [![Action Template](https://img.shields.io/badge/Action%20Template-Go%20Container%20Action-blue.svg?colorA=24292e&colorB=0366d6&style=flat&longCache=true&logo=data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAA4AAAAOCAYAAAAfSC3RAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAM6wAADOsB5dZE0gAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAERSURBVCiRhZG/SsMxFEZPfsVJ61jbxaF0cRQRcRJ9hlYn30IHN/+9iquDCOIsblIrOjqKgy5aKoJQj4O3EEtbPwhJbr6Te28CmdSKeqzeqr0YbfVIrTBKakvtOl5dtTkK+v4HfA9PEyBFCY9AGVgCBLaBp1jPAyfAJ/AAdIEG0dNAiyP7+K1qIfMdonZic6+WJoBJvQlvuwDqcXadUuqPA1NKAlexbRTAIMvMOCjTbMwl1LtI/6KWJ5Q6rT6Ht1MA58AX8Apcqqt5r2qhrgAXQC3CZ6i1+KMd9TRu3MvA3aH/fFPnBodb6oe6HM8+lYHrGdRXW8M9bMZtPXUji69lmf5Cmamq7quNLFZXD9Rq7v0Bpc1o/tp0fisAAAAASUVORK5CYII=)](https://github.com/jacobtomlinson/go-container-action)
 [![Actions Status](https://github.com/jacobtomlinson/go-container-action/workflows/Build/badge.svg)](https://github.com/jacobtomlinson/go-container-action/actions)
 [![Actions Status](https://github.com/jacobtomlinson/go-container-action/workflows/Integration%20Test/badge.svg)](https://github.com/jacobtomlinson/go-container-action/actions)
 
-This is a template for creating GitHub actions and contains a small Go application which will be built into a minimal [Container Action](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/creating-a-docker-container-action). Our final container from this template is ~3MB, yours may be a little bigger once you add some code, but it'll still be tiny!
-
-In `main.go` you will find a small example of accessing Action inputs and returning Action outputs. For more information on communicating with the workflow see the [development tools for GitHub Actions](https://help.github.com/en/actions/automating-your-workflow-with-github-actions/development-tools-for-github-actions).
-
-> 🏁 To get started, click the `Use this template` button on this repository [which will create a new repository based on this template](https://github.blog/2019-06-06-generate-new-repositories-with-repository-templates/).
+This is a GitHub Action to replace placeholders in files with values from secrets or key vaults.
 
 ## Usage
 
-Describe how to use your action here.
+This action uses go text file templating and replace values in files with secrets taken from other step or repo secrets.
+
 
 ### Example workflow
 
@@ -25,61 +22,52 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Run action
-
-      # Put your action repo here
-      uses: me/myaction@master
-
-      # Put an example of your mandatory inputs here
+      uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
       with:
-        myInput: world
+        secrets: toJson(${{ secrets }})
+    - run: |
+        echo .env
 ```
 
 ### Inputs
 
-| Input                                             | Description                                        |
-|------------------------------------------------------|-----------------------------------------------|
-| `myInput`  | An example mandatory input    |
-| `anotherInput` _(optional)_  | An example optional input    |
+| Input                 | Description                                                                                                         |
+|-----------------------|---------------------------------------------------------------------------------------------------------------------|
+| `secrets`             | A JSON with secrets to use as replacement                                                                           |
+| `file` _(optional)_   | Name of the input file a go text template to have secrets replaced with values form _secrets_ JSON (default _.env_) |
+| `output` _(optional)_ | The file name of the output by default it would be the same as input file - it would get overwritten                |
+
+> The file to be processed is using the [go text template](https://pkg.go.dev/text/template#hdr-Text_and_spaces)
 
 ### Outputs
 
-| Output                                             | Description                                        |
-|------------------------------------------------------|-----------------------------------------------|
-| `myOutput`  | An example output (returns 'Hello world')    |
+No direct output apart from file with replaced placeholders
 
 ## Examples
 
-> NOTE: People ❤️ cut and paste examples. Be generous with them!
+### Using the action with Azure Key Vault
 
-### Using the optional input
-
-This is how to use the optional input.
-
-```yaml
-with:
-  myInput: world
-  anotherInput: optional
-```
-
-### Using outputs
-
-Show people how to use your outputs in another action.
+This is how to use the action with Azure Key Vault.
 
 ```yaml
 steps:
-- uses: actions/checkout@master
-- name: Run action
-  id: myaction
-
-  # Put your action name here
-  uses: me/myaction@master
-
-  # Put an example of your mandatory arguments here
-  with:
-    myInput: world
-
-# Put an example of using your outputs here
-- name: Check outputs
-    run: |
-    echo "Outputs - ${{ steps.myaction.outputs.myOutput }}"
+  - uses: Azure/login@v1
+    with:
+      creds: ${{ secrets.AZURE_CREDENTIALS }}
+  - uses: Azure/get-keyvault-secrets@v1
+    with:
+      keyvault: "MyKeyVault"
+      secrets: '*'
+    id: kv
+  - uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
+    with:
+      secrets: ${{ toJson(steps.kv.outputs) }}
 ```
+
+### Example .env file
+```
+SOME_VALUE={{ index . "my-secret" }}
+OTHER_VALUE={{ .otherSecret }}
+```
+
+> NOTE: for variable names that contains dash/hyphen you need to use special syntax with index function. It is not possible to use {{ .name-with-hyphen }} as hyphen has a special meaning in the go template syntax.

@@ -7,10 +7,10 @@ jobs:
       - uses: actions/checkout@master
       - name: Self test
         id: selftest
-
-        # Put your action repo here
-        uses: jacobtomlinson/go-container-action@master
-
+        uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
+        with:
+          output: .env.test
+          secrets: toJson(${{ secrets }})
       - name: Check outputs
         run: |
-          test "${{ steps.selftest.outputs.myOutput }}" == "Hello world"
+          grep -q "very secret" .env.test
