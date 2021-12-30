@@ -7,7 +7,7 @@ jobs:
       - uses: actions/checkout@master
       - name: Self test
         id: selftest
-        uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
+        uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file@main
         with:
           output: .env.test
           secrets: toJson(${{ secrets }})

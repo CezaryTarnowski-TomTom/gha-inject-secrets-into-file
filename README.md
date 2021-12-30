@@ -22,7 +22,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: Run action
-      uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
+      uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file@v1
       with:
         secrets: toJson(${{ secrets }})
     - run: |
@@ -59,7 +59,7 @@ steps:
       keyvault: "MyKeyVault"
       secrets: '*'
     id: kv
-  - uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file
+  - uses: CezaryTarnowski-TomTom/gha-inject-secrets-into-file@v1
     with:
       secrets: ${{ toJson(steps.kv.outputs) }}
 ```
