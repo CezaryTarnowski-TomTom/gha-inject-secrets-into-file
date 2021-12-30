@@ -1,4 +1,4 @@
-FROM golang:1.17 as builder
+FROM golang:alpine as builder
 
 WORKDIR /gha-inject-secrets-into-file
 COPY . /gha-inject-secrets-into-file
